@@ -1,0 +1,11 @@
+[Unit]
+Description=Efikchain Mainnet 1997 Clique PoA Real Funds
+After=network.target
+[Service]
+User=efikcoin
+Type=simple
+ExecStart=/home/efikcoin/start.sh
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

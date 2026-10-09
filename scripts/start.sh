@@ -1,0 +1,2 @@
+#!/bin/bash
+geth --datadir /home/efikcoin/Efikchain/mainnet/data_final --networkid 1997 --http --http.addr 0.0.0.0 --http.port 8545 --http.corsdomain "*" --http.vhosts "*" --http.api eth,net,web3 --ws.api eth,net,web3 --unlock 0xC04d5ecF404eE352070A5cA125eB5fBA2267Ab46 --password /home/efikcoin/password.txt --allow-insecure-unlock --miner.etherbase 0xC04d5ecF404eE352070A5cA125eB5fBA2267Ab46 --mine --syncmode full --gcmode archive --nodiscover

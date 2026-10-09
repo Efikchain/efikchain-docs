@@ -1,0 +1,9 @@
+Geth
+Version: 1.13.15-stable
+Git Commit: c5ba367eb6232e3eddd7d6226bfd374449c63164
+Git Commit Date: 20240417
+Architecture: amd64
+Go Version: go1.21.6
+Operating System: linux
+GOPATH=
+GOROOT=
