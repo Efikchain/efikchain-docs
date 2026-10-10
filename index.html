@@ -16,6 +16,7 @@
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  html,body{max-width:100%;overflow-x:hidden}
   body{margin:0;background:var(--paper);color:var(--ink);
     font:18px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   a{color:var(--accent)}
@@ -97,7 +98,8 @@
   .steps p{margin:0;color:var(--soft)}
 
   /* dev */
-  .devgrid{display:grid;gap:24px;grid-template-columns:1fr 1fr}
+  .devgrid{display:grid;gap:24px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .devgrid>div{min-width:0}
   pre{margin:0;background:var(--deep);color:#dbe3ff;border-radius:14px;padding:22px;overflow:auto;
     font:15px/1.6 ui-monospace,Menlo,Consolas,monospace}
   .label{font-weight:600;margin:0 0 10px}
@@ -125,7 +127,7 @@
   footer .warn{margin-top:36px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14);font-size:15px}
 
   @media (max-width:900px){
-    .cols,.steps,.devgrid,footer .fg{grid-template-columns:1fr}
+    .cols,.steps,.devgrid,footer .fg{grid-template-columns:minmax(0,1fr)}
     .stats{grid-template-columns:1fr 1fr}
     .stat:nth-child(3){padding-left:0;border-left:0}
     .stat{border-top:0}
@@ -143,7 +145,7 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#top" id="top-link">
-      <img src="https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy" alt="Efikchain logo" width="42" height="42">
+      <img src="logo.png" onerror="this.onerror=null;this.src='https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy'" alt="Efikchain logo" width="42" height="42">
       Efikchain
     </a>
     <nav aria-label="Main">
@@ -281,7 +283,7 @@
   <div class="wrap">
     <div class="fg">
       <div>
-        <a class="brand" href="#top" style="margin-bottom:12px"><img src="https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy" alt="" width="36" height="36">Efikchain</a>
+        <a class="brand" href="#top" style="margin-bottom:12px"><img src="logo.png" onerror="this.onerror=null;this.src='https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy'" alt="" width="36" height="36">Efikchain</a>
         <p style="margin:0;max-width:26em">An EVM-compatible mainnet blockchain with its own coin, EFIK.</p>
       </div>
       <div>
