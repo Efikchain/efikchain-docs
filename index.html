@@ -152,6 +152,7 @@
       <a href="#about">About</a>
       <a href="#blocks">Live blocks</a>
       <a href="#start">Get started</a>
+      <a href="#tokens">Tokens</a>
       <a href="#developers">Developers</a>
       <a href="#faq">FAQ</a>
       <a class="cta" href="https://explorer.efikcoin.com">Explorer</a>
@@ -266,7 +267,28 @@
     </div>
   </section>
 
-  <section id="faq">
+  <section id="tokens">
+    <div class="wrap">
+      <h2>EFIK and WEFIK</h2>
+      <p class="sub">EFIK is the native coin of the network and pays transaction fees. WEFIK is the ERC-20 version of EFIK, used by apps, exchanges and DEX pools.</p>
+      <div class="tablebox">
+        <table class="kv">
+          <tr><th scope="row">EFIK</th><td>Native coin, 18 decimals, used for gas</td></tr>
+          <tr><th scope="row">WEFIK name</th><td>Wrapped EFIK (1 WEFIK is backed by 1 EFIK)</td></tr>
+          <tr><th scope="row">WEFIK contract</th><td><code>0x588F3268D61959eaD6DcB4790e2a32494EB11f52</code><button class="copy" data-copy="0x588F3268D61959eaD6DcB4790e2a32494EB11f52" type="button">Copy</button></td></tr>
+          <tr><th scope="row">Decimals</th><td>18</td></tr>
+          <tr><th scope="row">Token list</th><td><a href="tokenlist.json">efikcoin.com/tokenlist.json</a></td></tr>
+        </table>
+      </div>
+      <div class="actions" style="margin-top:28px">
+        <button class="primary" id="addtoken" type="button">Add WEFIK to wallet</button>
+        <a class="btn dark-outline" href="https://explorer.efikcoin.com/address/0x588F3268D61959eaD6DcB4790e2a32494EB11f52">View contract</a>
+      </div>
+      <div id="tstatus" role="status" aria-live="polite" style="margin-top:16px;min-height:1.6em;color:var(--soft)"></div>
+    </div>
+  </section>
+
+  <section id="faq" class="alt">
     <div class="wrap">
       <h2>Questions</h2>
       <p class="sub">Short answers about the network.</p>
@@ -334,6 +356,21 @@
   }
   document.getElementById("add").addEventListener("click", addNetwork);
   document.getElementById("add2").addEventListener("click", addNetwork);
+
+
+  document.getElementById("addtoken").addEventListener("click", async function () {
+    var t = document.getElementById("tstatus");
+    if (!window.ethereum) { t.textContent = "No wallet found in this browser. Add the token manually with the contract address above."; return; }
+    try {
+      await window.ethereum.request({
+        method: "wallet_watchAsset",
+        params: { type: "ERC20", options: { address: "0x588F3268D61959eaD6DcB4790e2a32494EB11f52", symbol: "WEFIK", decimals: 18, image: "https://efikcoin.com/logo.png" } }
+      });
+      t.textContent = "WEFIK was added to your wallet.";
+    } catch (e) {
+      t.textContent = "Your wallet could not add the token. Add it manually with the contract address above.";
+    }
+  });
 
   document.querySelectorAll(".copy").forEach(function (b) {
     b.addEventListener("click", function () {
