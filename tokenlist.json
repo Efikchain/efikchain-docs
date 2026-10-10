@@ -1,0 +1,24 @@
+{
+  "name": "Efikchain Token List",
+  "timestamp": "2026-10-11T00:00:00+00:00",
+  "version": { "major": 1, "minor": 0, "patch": 0 },
+  "keywords": ["efikchain", "efik"],
+  "logoURI": "ipfs://bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy",
+  "tags": {
+    "wrapped": {
+      "name": "Wrapped native coin",
+      "description": "ERC-20 version of the native EFIK coin"
+    }
+  },
+  "tokens": [
+    {
+      "chainId": 199714,
+      "address": "0x588F3268D61959eaD6DcB4790e2a32494EB11f52",
+      "name": "Wrapped EFIK",
+      "symbol": "WEFIK",
+      "decimals": 18,
+      "logoURI": "ipfs://bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy",
+      "tags": ["wrapped"]
+    }
+  ]
+}
