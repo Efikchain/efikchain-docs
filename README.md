@@ -38,7 +38,7 @@ geth --datadir ~/efik-data --networkid 199714 --syncmode full --gcmode archive -
 5. Connect to the network by adding the bootnode as a peer (in the geth console):
 
 ```
-admin.addPeer("ENODE_PLACEHOLDER")
+admin.addPeer("enode://0fd750f316445f277341a7fe0089fd7df4e179ab1bf6c08d48e57374e951864b3804fad1913941853096f63ccd972c8fa245a526e180e884149b36f509ab698e@34.6.166.103:30304")
 ```
 
 The current peer enode is published in `ENODE.txt`.
