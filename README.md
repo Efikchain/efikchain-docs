@@ -50,7 +50,7 @@ The current peer enode is published in `ENODE.txt`.
 | Network name | Efikchain Mainnet |
 | RPC URL | https://rpc.efikcoin.com |
 | Chain ID | 199714 |
-| Currency symbol | TODO |
+| Currency symbol | EFIK |
 | Block explorer | https://explorer.efikcoin.com |
 
 ## Forking or building on Efikchain
