@@ -29,3 +29,7 @@ Add one row per deployment via pull request. Every address must be verified on t
 2. Contract source must be verified on https://explorer.efikcoin.com.
 3. Address must be checksummed.
 4. Deployer address and deployment tx hash are required.
+
+## Official deployer address
+
+0xCc29118f6CC959b03c17B9028Ad1684616Eb2B30
