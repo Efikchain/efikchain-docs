@@ -7,8 +7,8 @@
 <meta name="description" content="Efikchain is a live EVM-compatible mainnet blockchain with its own coin, EFIK. Chain ID 199714.">
 <meta property="og:title" content="Efikchain Mainnet">
 <meta property="og:description" content="A live EVM-compatible blockchain with its own coin, EFIK.">
-<meta property="og:image" content="https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy">
-<link rel="icon" href="https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy">
+<meta property="og:image" content="https://efikcoin.com/logo.png">
+<link rel="icon" href="https://efikcoin.com/logo.png">
 <style>
   :root{
     --paper:#eef2f6; --panel:#ffffff; --ink:#101a33; --soft:#4a5672; --line:#c9d3e0;
@@ -16,7 +16,6 @@
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  html,body{max-width:100%;overflow-x:hidden}
   body{margin:0;background:var(--paper);color:var(--ink);
     font:18px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   a{color:var(--accent)}
@@ -145,7 +144,7 @@
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#top" id="top-link">
-      <img src="logo.png" onerror="this.onerror=null;this.src='https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy'" alt="Efikchain logo" width="42" height="42">
+      <img src="https://efikcoin.com/logo.png" alt="Efikchain logo" width="42" height="42">
       Efikchain
     </a>
     <nav aria-label="Main">
@@ -267,7 +266,7 @@
     </div>
   </section>
 
-  <section id="tokens">
+    <section id="tokens">
     <div class="wrap">
       <h2>EFIK and WEFIK</h2>
       <p class="sub">EFIK is the native coin of the network and pays transaction fees. WEFIK is the ERC-20 version of EFIK, used by apps, exchanges and DEX pools.</p>
@@ -288,7 +287,7 @@
     </div>
   </section>
 
-  <section id="faq" class="alt">
+<section id="faq" class="alt">
     <div class="wrap">
       <h2>Questions</h2>
       <p class="sub">Short answers about the network.</p>
@@ -305,7 +304,7 @@
   <div class="wrap">
     <div class="fg">
       <div>
-        <a class="brand" href="#top" style="margin-bottom:12px"><img src="logo.png" onerror="this.onerror=null;this.src='https://ipfs.io/ipfs/bafybeib3kqwbp3derktpxcvrmkecnmk25du5w5hqsgjfcfktxhfdi3cviy'" alt="" width="36" height="36">Efikchain</a>
+        <a class="brand" href="#top" style="margin-bottom:12px"><img src="https://efikcoin.com/logo.png" alt="" width="36" height="36">Efikchain</a>
         <p style="margin:0;max-width:26em">An EVM-compatible mainnet blockchain with its own coin, EFIK.</p>
       </div>
       <div>
@@ -356,7 +355,6 @@
   }
   document.getElementById("add").addEventListener("click", addNetwork);
   document.getElementById("add2").addEventListener("click", addNetwork);
-
 
   document.getElementById("addtoken").addEventListener("click", async function () {
     var t = document.getElementById("tstatus");
