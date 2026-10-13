@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Efikchain Wallet Portal</title>
+<link rel="icon" href="https://efikcoin.com/logo.png">
+<style>
+  :root{--paper:#eef2f6;--panel:#fff;--ink:#101a33;--soft:#4a5672;--line:#c9d3e0;--deep:#0d1530;--accent:#2f45e8;--ok:#1c7a4a;--bad:#b3261e}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{background:var(--deep);color:#fff}
+  header .wrap{display:flex;align-items:center;gap:12px;height:64px}
+  header img{width:38px;height:38px;border-radius:50%;background:#fff}
+  header strong{font-size:19px}
+  header a{margin-left:auto;color:#cdd6f6;text-decoration:none;font-size:15px}
+  .wrap{max-width:720px;margin:0 auto;padding:0 20px}
+  h1{font:700 clamp(28px,6vw,40px)/1.1 Georgia,serif;margin:32px 0 8px}
+  .lead{color:var(--soft);margin:0 0 24px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+  h2{font:700 21px/1.2 Georgia,serif;margin:0 0 12px}
+  button{font:inherit;font-weight:600;border-radius:10px;padding:12px 20px;cursor:pointer;border:2px solid var(--accent);background:var(--accent);color:#fff}
+  button:hover{background:#4258ff;border-color:#4258ff}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
+  button[disabled]{opacity:.5;cursor:not-allowed}
+  label{display:block;font-weight:600;margin:12px 0 6px}
+  input{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .bal{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+  .bal:first-of-type{border-top:0}
+  code{font:15px ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+  #msg{min-height:1.6em;margin:6px 0 18px;font-weight:600}
+  .ok{color:var(--ok)}.bad{color:var(--bad)}
+  .note{font-size:15px;color:var(--soft)}
+  :focus-visible{outline:3px solid #9fb2ff;outline-offset:2px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <img src="https://efikcoin.com/logo.png" alt="Efikchain logo" width="38" height="38">
+  <strong>Efikchain</strong>
+  <a href="https://efikcoin.com">Home</a>
+</div></header>
+
+<main class="wrap">
+  <h1>Wallet portal</h1>
+  <p class="lead">Connect the wallet you already use. This page never sees your private key or recovery phrase. Every transaction is approved inside your own wallet app.</p>
+
+  <div id="msg" role="status" aria-live="polite"></div>
+
+  <section class="card">
+    <h2>Your account</h2>
+    <div class="row"><button id="connect" type="button">Connect wallet</button></div>
+    <p class="note" id="acct">Not connected.</p>
+    <div class="bal"><span>EFIK</span><strong id="b-efik">–</strong></div>
+    <div class="bal"><span>WEFIK (wrapped EFIK)</span><strong id="b-wefik">–</strong></div>
+    <div class="row"><button id="refresh" class="ghost" type="button">Refresh balances</button></div>
+  </section>
+
+  <section class="card">
+    <h2>Send EFIK</h2>
+    <label for="to">Recipient address</label>
+    <input id="to" placeholder="0x..." autocomplete="off" spellcheck="false">
+    <label for="amt">Amount (EFIK)</label>
+    <input id="amt" inputmode="decimal" placeholder="0.0" autocomplete="off">
+    <div class="row"><button id="send" type="button">Send</button></div>
+    <p class="note">Check the address carefully. Transactions on a blockchain cannot be reversed.</p>
+  </section>
+
+  <section class="card">
+    <h2>Wrap and unwrap</h2>
+    <p class="note">Wrapping turns EFIK into WEFIK (the ERC-20 version) one to one. Unwrapping turns it back.</p>
+    <label for="wamt">Amount</label>
+    <input id="wamt" inputmode="decimal" placeholder="0.0" autocomplete="off">
+    <div class="row">
+      <button id="wrap" type="button">Wrap EFIK to WEFIK</button>
+      <button id="unwrap" class="ghost" type="button">Unwrap WEFIK to EFIK</button>
+    </div>
+  </section>
+
+  <p class="note">WEFIK contract: <code id="wc">0x588F3268D61959eaD6DcB4790e2a32494EB11f52</code><br>
+  Network: Efikchain Mainnet, chain ID 199714 · <a href="https://explorer.efikcoin.com">Explorer</a></p>
+</main>
+
+<script>
+(function () {
+  var RPC = "https://rpc.efikcoin.com";
+  var CHAIN_HEX = "0x30c22";
+  var WEFIK = "0x588F3268D61959eaD6DcB4790e2a32494EB11f52";
+  var account = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  function say(t, cls) { var m = $("msg"); m.textContent = t; m.className = cls || ""; }
+
+  function parse(s) {
+    s = String(s).trim();
+    if (!/^\d+(\.\d{1,18})?$/.test(s)) throw new Error("Enter a valid amount, for example 1 or 0.5");
+    var p = s.split("."), i = p[0], f = (p[1] || "");
+    var v = BigInt(i + f.padEnd(18, "0"));
+    if (v <= 0n) throw new Error("Amount must be more than zero");
+    return v;
+  }
+  function fmt(w) {
+    var s = w.toString().padStart(19, "0");
+    var i = s.slice(0, -18), f = s.slice(-18).replace(/0+$/, "");
+    return f ? i + "." + f.slice(0, 6) : i;
+  }
+  function hex(v) { return "0x" + v.toString(16); }
+  function pad(h) { return h.replace(/^0x/, "").padStart(64, "0"); }
+
+  function rpc(method, params) {
+    return fetch(RPC, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", method: method, params: params, id: 1 })
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j.error) throw new Error(j.error.message);
+      return j.result;
+    });
+  }
+
+  async function ensureChain() {
+    var id = await window.ethereum.request({ method: "eth_chainId" });
+    if (id.toLowerCase() === CHAIN_HEX) return;
+    try {
+      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_HEX }] });
+    } catch (e) {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [{
+          chainId: CHAIN_HEX, chainName: "Efikchain Mainnet",
+          nativeCurrency: { name: "EFIK", symbol: "EFIK", decimals: 18 },
+          rpcUrls: [RPC], blockExplorerUrls: ["https://explorer.efikcoin.com"]
+        }]
+      });
+    }
+  }
+
+  async function refresh() {
+    if (!account) return;
+    try {
+      var e = await rpc("eth_getBalance", [account, "latest"]);
+      var w = await rpc("eth_call", [{ to: WEFIK, data: "0x70a08231" + pad(account) }, "latest"]);
+      $("b-efik").textContent = fmt(BigInt(e));
+      $("b-wefik").textContent = fmt(BigInt(w));
+    } catch (err) { say("Could not read balances right now. Try again in a moment.", "bad"); }
+  }
+
+  async function sendTx(tx, label) {
+    if (!window.ethereum) { say("No wallet found in this browser. Open this page inside your wallet's own browser.", "bad"); return; }
+    if (!account) { say("Connect your wallet first.", "bad"); return; }
+    try {
+      await ensureChain();
+      say("Confirm the transaction in your wallet…");
+      tx.from = account;
+      var h = await window.ethereum.request({ method: "eth_sendTransaction", params: [tx] });
+      say(label + " sent. Transaction: " + h.slice(0, 12) + "… (see it in the explorer)", "ok");
+      setTimeout(refresh, 8000);
+    } catch (err) {
+      say(err && err.code === 4001 ? "You cancelled the request in your wallet."
+                                   : "The wallet could not send it. " + (err && err.message ? err.message : ""), "bad");
+    }
+  }
+
+  $("connect").addEventListener("click", async function () {
+    if (!window.ethereum) { say("No wallet found in this browser. Open this page inside your wallet's own browser (MetaMask, Core or similar).", "bad"); return; }
+    try {
+      await ensureChain();
+      var a = await window.ethereum.request({ method: "eth_requestAccounts" });
+      account = a[0];
+      $("acct").textContent = "Connected: " + account;
+      say("Connected to Efikchain Mainnet.", "ok");
+      refresh();
+    } catch (err) { say("Connection was cancelled or failed.", "bad"); }
+  });
+  $("refresh").addEventListener("click", refresh);
+
+  $("send").addEventListener("click", function () {
+    try {
+      var to = $("to").value.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(to)) throw new Error("Enter a valid recipient address starting with 0x");
+      var v = parse($("amt").value);
+      if (!window.confirm("Send " + fmt(v) + " EFIK to\n" + to + "\n\nTransactions cannot be reversed. Continue?")) return;
+      sendTx({ to: to, value: hex(v) }, "EFIK transfer");
+    } catch (err) { say(err.message, "bad"); }
+  });
+
+  $("wrap").addEventListener("click", function () {
+    try {
+      var v = parse($("wamt").value);
+      sendTx({ to: WEFIK, value: hex(v), data: "0xd0e30db0" }, "Wrap");
+    } catch (err) { say(err.message, "bad"); }
+  });
+  $("unwrap").addEventListener("click", function () {
+    try {
+      var v = parse($("wamt").value);
+      sendTx({ to: WEFIK, data: "0x2e1a7d4d" + pad(v.toString(16)) }, "Unwrap");
+    } catch (err) { say(err.message, "bad"); }
+  });
+
+  if (window.ethereum && window.ethereum.on) {
+    window.ethereum.on("accountsChanged", function (a) {
+      account = a[0] || null;
+      $("acct").textContent = account ? "Connected: " + account : "Not connected.";
+      refresh();
+    });
+  }
+})();
+</script>
+</body>
+</html>
