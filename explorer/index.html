@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Efikchain Explorer</title>
+<link rel="icon" href="https://efikcoin.com/logo.png">
+<style>
+  :root{--paper:#eef2f6;--panel:#fff;--ink:#101a33;--soft:#4a5672;--line:#c9d3e0;--deep:#0d1530;--accent:#2f45e8;--ok:#1c7a4a;--bad:#b3261e}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  header{background:var(--deep);color:#fff;padding:14px 0}
+  .wrap{max-width:980px;margin:0 auto;padding:0 18px}
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .top img{width:36px;height:36px;border-radius:50%;background:#fff}
+  .top a.brand{color:#fff;font-weight:700;font-size:19px}
+  .top a.home{color:#cdd6f6;font-size:14px;margin-left:auto}
+  form{display:flex;gap:8px;margin-top:12px}
+  input{flex:1;min-width:0;font:inherit;padding:12px;border:0;border-radius:10px}
+  button{font:inherit;font-weight:600;padding:12px 18px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer}
+  main{padding:22px 0 40px}
+  h1{font:700 26px/1.2 Georgia,serif;margin:6px 0 14px;word-break:break-word}
+  h2{font:700 20px/1.2 Georgia,serif;margin:24px 0 10px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card b{display:block;font:700 24px/1.2 Georgia,serif}
+  .card span{color:var(--soft);font-size:14px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;word-break:break-word}
+  tr:last-child th,tr:last-child td{border-bottom:0}
+  thead th{background:#f6f8fb;color:var(--soft);font-size:14px}
+  .kv th{width:30%;color:var(--soft);font-weight:600}
+  code{font:14px ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+  .ok{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
+  .note{color:var(--soft);font-size:14px}
+  footer{color:var(--soft);font-size:14px;padding:0 0 30px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top">
+    <img src="https://efikcoin.com/logo.png" alt="Efikchain logo" width="36" height="36">
+    <a class="brand" href="#/">Efikchain Explorer</a>
+    <a class="home" href="https://efikcoin.com">efikcoin.com</a>
+  </div>
+  <form id="f"><input id="q" placeholder="Search by block number, transaction hash or address" autocomplete="off" spellcheck="false"><button type="submit">Search</button></form>
+</div></header>
+<main class="wrap"><div id="app">Loading…</div></main>
+<footer class="wrap">Reads directly from https://rpc.efikcoin.com. Chain ID 199714. No price is shown because EFIK has no market yet.</footer>
+
+<script>
+(function () {
+  var RPC = "https://rpc.efikcoin.com";
+  var app = document.getElementById("app"), timer = null;
+
+  function rpc(m, p) {
+    return fetch(RPC, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", method: m, params: p || [], id: 1 }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (j.error) throw new Error(j.error.message); return j.result; });
+  }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); }
+  function num(h) { return parseInt(h, 16); }
+  function wei(h) {
+    var s = BigInt(h || "0x0").toString().padStart(19, "0");
+    var i = s.slice(0, -18), f = s.slice(-18).replace(/0+$/, "");
+    return f ? i + "." + f.slice(0, 8) : i;
+  }
+  function ago(ts) {
+    var s = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+    if (s < 60) return s + "s ago";
+    if (s < 3600) return Math.floor(s / 60) + "m ago";
+    if (s < 86400) return Math.floor(s / 3600) + "h ago";
+    return Math.floor(s / 86400) + "d ago";
+  }
+  function sh(x) { return x ? x.slice(0, 10) + "…" + x.slice(-6) : "–"; }
+  function A(h, t) { return '<a href="#/' + esc(h) + '">' + esc(t) + "</a>"; }
+  function row(k, v) { return "<tr><th>" + esc(k) + "</th><td>" + v + "</td></tr>"; }
+  function card(t, v) { return '<div class="card"><b>' + v + "</b><span>" + esc(t) + "</span></div>"; }
+  function show(h) { app.innerHTML = h; }
+  function fail(e) { show('<p class="bad">Could not load data: ' + esc(e && e.message ? e.message : e) + "</p>"); }
+  var isHash = function (x) { return /^0x[0-9a-fA-F]{64}$/.test(x); };
+  var isAddr = function (x) { return /^0x[0-9a-fA-F]{40}$/.test(x); };
+
+  async function home() {
+    try {
+      var n = num(await rpc("eth_blockNumber"));
+      var gp = await rpc("eth_gasPrice");
+      var calls = [];
+      for (var i = 0; i < 12 && n - i >= 0; i++) calls.push(rpc("eth_getBlockByNumber", ["0x" + (n - i).toString(16), false]));
+      var bl = await Promise.all(calls);
+      var rows = bl.map(function (b) {
+        return "<tr><td>" + A("block/" + num(b.number), num(b.number).toLocaleString()) + "</td><td>" + ago(num(b.timestamp)) +
+               "</td><td>" + b.transactions.length + "</td><td>" + num(b.gasUsed).toLocaleString() + "</td></tr>";
+      }).join("");
+      show('<div class="cards">' + card("Latest block", n.toLocaleString()) + card("Chain ID", "199714") +
+           card("Gas price (gwei)", (Number(BigInt(gp)) / 1e9).toFixed(3)) + card("Native coin", "EFIK") + "</div>" +
+           '<h2>Latest blocks</h2><div class="box"><table><thead><tr><th>Block</th><th>Age</th><th>Txns</th><th>Gas used</th></tr></thead><tbody>' + rows + "</tbody></table></div>");
+      timer = setTimeout(home, 6000);
+    } catch (e) { fail(e); }
+  }
+
+  async function block(id) {
+    try {
+      var b;
+      if (/^\d+$/.test(id)) b = await rpc("eth_getBlockByNumber", ["0x" + Number(id).toString(16), true]);
+      else if (isHash(id)) b = await rpc("eth_getBlockByHash", [id, true]);
+      else return show("<p>That is not a valid block.</p>");
+      if (!b) return show("<p>Block not found.</p>");
+      var n = num(b.number);
+      var txs = b.transactions.map(function (x) {
+        return "<tr><td>" + A("tx/" + x.hash, sh(x.hash)) + "</td><td>" + A("address/" + x.from, sh(x.from)) + "</td><td>" +
+               (x.to ? A("address/" + x.to, sh(x.to)) : "Contract creation") + "</td><td>" + wei(x.value) + " EFIK</td></tr>";
+      }).join("") || '<tr><td colspan="4">No transactions in this block.</td></tr>';
+      show("<h1>Block " + n.toLocaleString() + "</h1>" +
+        '<p class="note">' + (n > 0 ? A("block/" + (n - 1), "← previous") + " · " : "") + A("block/" + (n + 1), "next →") + "</p>" +
+        '<div class="box"><table class="kv">' + row("Hash", "<code>" + esc(b.hash) + "</code>") +
+        row("Time (UTC)", esc(new Date(num(b.timestamp) * 1000).toUTCString())) + row("Transactions", b.transactions.length) +
+        row("Gas used", num(b.gasUsed).toLocaleString()) + row("Parent", n > 0 ? A("block/" + b.parentHash, sh(b.parentHash)) : "–") +
+        "</table></div><h2>Transactions</h2>" +
+        '<div class="box"><table><thead><tr><th>Hash</th><th>From</th><th>To</th><th>Value</th></tr></thead><tbody>' + txs + "</tbody></table></div>");
+    } catch (e) { fail(e); }
+  }
+
+  async function tx(h) {
+    try {
+      if (!isHash(h)) return show("<p>That is not a valid transaction hash.</p>");
+      var t = await rpc("eth_getTransactionByHash", [h]);
+      if (!t) {
+        var b = await rpc("eth_getBlockByHash", [h, false]);
+        if (b) return block(h);
+        return show("<p>Transaction not found.</p>");
+      }
+      var r = await rpc("eth_getTransactionReceipt", [h]);
+      var st = r ? (r.status === "0x1" ? '<span class="ok">Success</span>' : '<span class="bad">Failed</span>') : "Pending";
+      show("<h1>Transaction</h1>" + '<div class="box"><table class="kv">' + row("Hash", "<code>" + esc(t.hash) + "</code>") + row("Status", st) +
+        row("Block", t.blockNumber ? A("block/" + num(t.blockNumber), num(t.blockNumber).toLocaleString()) : "Pending") +
+        row("From", A("address/" + t.from, t.from)) + row("To", t.to ? A("address/" + t.to, t.to) : "Contract creation" + (r && r.contractAddress ? " → " + A("address/" + r.contractAddress, r.contractAddress) : "")) +
+        row("Value", wei(t.value) + " EFIK") + row("Gas used", r ? num(r.gasUsed).toLocaleString() : "–") + row("Nonce", num(t.nonce)) + "</table></div>");
+    } catch (e) { fail(e); }
+  }
+
+  async function address(a) {
+    try {
+      if (!isAddr(a)) return show("<p>That is not a valid address.</p>");
+      var bal = await rpc("eth_getBalance", [a, "latest"]);
+      var nonce = await rpc("eth_getTransactionCount", [a, "latest"]);
+      var code = await rpc("eth_getCode", [a, "latest"]);
+      show("<h1>Address</h1>" + '<div class="box"><table class="kv">' + row("Address", "<code>" + esc(a) + "</code>") +
+        row("Balance", wei(bal) + " EFIK") + row("Transactions sent", num(nonce)) +
+        row("Type", code !== "0x" ? "Contract (" + ((code.length - 2) / 2) + " bytes of code)" : "Account") + "</table></div>" +
+        '<p class="note">A full history per address needs a database indexer, which this light explorer does not have. Use the block pages to follow transactions.</p>');
+    } catch (e) { fail(e); }
+  }
+
+  function route() {
+    clearTimeout(timer);
+    var p = location.hash.replace(/^#\/?/, "").split("/");
+    var v = p[1] ? decodeURIComponent(p[1]) : "";
+    if (p[0] === "block" && v) return block(v);
+    if (p[0] === "tx" && v) return tx(v);
+    if (p[0] === "address" && v) return address(v);
+    home();
+  }
+
+  document.getElementById("f").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = document.getElementById("q").value.trim();
+    if (/^\d+$/.test(v)) location.hash = "#/block/" + v;
+    else if (isHash(v)) location.hash = "#/tx/" + v;
+    else if (isAddr(v)) location.hash = "#/address/" + v;
+    else alert("Enter a block number, a 66-character transaction hash, or a 42-character address.");
+  });
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
+</body>
+</html>
