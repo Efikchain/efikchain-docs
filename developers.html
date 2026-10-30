@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Developers</title><link rel="stylesheet" href="assets/style.css"></head>
+<body><main class="w">
+<h1>Developers</h1>
+<p class="lead">Use these settings in your tools. Keep private keys in a local .env file and never commit them.</p>
+<h2>Hardhat</h2>
+<pre data-tpl>networks: {
+  efikchain: {
+    url: "{{rpc}}",
+    chainId: {{chainId}},
+    accounts: [process.env.DEPLOYER_KEY]
+  }
+}</pre>
+<h2>ethers.js (v6)</h2>
+<pre data-tpl>const provider = new ethers.JsonRpcProvider("{{rpc}}", {{chainId}});
+console.log(await provider.getBlockNumber());</pre>
+<h2>Foundry</h2>
+<pre data-tpl>forge create src/MyToken.sol:MyToken --rpc-url {{rpc}} --private-key $DEPLOYER_KEY</pre>
+<h2>Remix</h2>
+<div class="c"><p>Add the network to your wallet, then in Remix choose Environment: Injected Provider and confirm it shows {{chainId}} before pressing Deploy. In the compiler tab set the EVM version to paris or london.</p></div>
+<h2>Quick check</h2>
+<pre data-tpl>curl -s {{rpc}} -X POST -H "Content-Type: application/json" \
+  -d "{\"jsonrpc\":\"2.0\",\"method\":\"eth_chainId\",\"params\":[],\"id\":1}"</pre>
+</main><script src="assets/config.js"></script><script src="assets/app.js"></script></body></html>

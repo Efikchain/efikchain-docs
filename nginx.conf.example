@@ -1,0 +1,8 @@
+server {
+    listen 80;
+    server_name YOUR-DOMAIN;
+    root /var/www/efik;
+    index index.html;
+    location / { try_files $uri $uri/ =404; }
+}
+# then: sudo certbot --nginx -d YOUR-DOMAIN

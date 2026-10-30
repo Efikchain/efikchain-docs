@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EfikchainScan</title><link rel="stylesheet" href="assets/style.css"></head>
+<body><main class="w">
+<h1>EfikchainScan</h1>
+<p class="lead">Look up anything on the chain. Detailed pages open in the full explorer.</p>
+<div class="c"><div class="srch"><input id="q" placeholder="Block number, transaction hash or address"><button class="btn" id="go">Search</button></div><div class="msg" id="smsg"></div></div>
+<h2>Check a balance</h2>
+<div class="c"><div class="srch"><input id="ba" placeholder="0x address"><button class="btn" id="bb">Check</button></div><div class="msg" id="bres"></div></div>
+<h2>Latest blocks</h2>
+<div class="c tw"><table><thead><tr><th>Block</th><th>Txns</th><th>Time (UTC)</th><th>Gas used</th></tr></thead><tbody id="tb" data-n="20"><tr><td colspan="4">Loading...</td></tr></tbody></table></div>
+<p><a class="btn o" data-href="explorer" target="_blank" rel="noopener">Open full explorer</a></p>
+</main><script src="assets/config.js"></script><script src="assets/app.js"></script></body></html>
