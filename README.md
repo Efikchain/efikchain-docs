@@ -1,17 +1,14 @@
-# EfikChain platform site
+# EfikChain DEX (WEFIK + Uniswap V2 fork)
 
-A static, no-build website for an EVM chain: home, EfikchainScan (search, balance, latest blocks),
-network setup, developer settings, trust checks and roadmap. Pure HTML, CSS and JavaScript.
+Deploys on EfikChain Mainnet (chain ID 199714): WEFIK, the V2 factory and the V2 router.
+Run it on your own computer (Node.js 18 or newer). Not tested on the live chain yet.
 
-## Fork it for another chain
-1. Fork or clone this repo.
-2. Edit `assets/config.js` (name, chain ID, RPC, explorer, logo, docs).
-3. Edit the wording in `roadmap.html` and `trust.html` so it is true for your chain.
-4. Deploy the folder anywhere static: nginx, GitHub Pages, Netlify.
+1. `npm install`
+2. Create a NEW wallet for deploying. Copy `.env.example` to `.env` and put its private key in `DEPLOYER_KEY`. Never share or commit it.
+3. Send the deployer address some EFIK for gas.
+4. `npm run prepare-dex` (copies sources, compiles, patches the pair init code hash)
+5. `npm run deploy` (prints addresses and writes `deployments.json`)
 
-## Requirements
-- Your RPC must send CORS headers (`Access-Control-Allow-Origin`), or the live data will not load.
-- Serve over HTTPS so the wallet button and clipboard work.
+If the deploy says "transaction underpriced", add `gasPrice: 1000000000` to the `efikchain` network in `hardhat.config.js`.
 
-## Deploy with nginx
-See `nginx.conf.example`.
+Commit `deployments.json` and put the addresses in the efikchain-docs repo. Never commit `.env`.
