@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EfikChain – The EFIK Blockchain</title>
+<style>
+:root{--bg:#f6f6fb;--card:#fff;--tx:#14161f;--mu:#667085;--ac:#6d28d9;--ac2:#fff;--bd:#e3e5ee;--ok:#15803d;--er:#b91c1c;--gr:linear-gradient(135deg,#6d28d9,#2563eb);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0d16;--card:#151827;--tx:#eceef6;--mu:#9aa0b4;--ac:#8b5cf6;--bd:#262a3f;--ok:#4ade80;--er:#f87171;--gr:linear-gradient(135deg,#8b5cf6,#3b82f6);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b0d16;--card:#151827;--tx:#eceef6;--mu:#9aa0b4;--ac:#8b5cf6;--bd:#262a3f;--ok:#4ade80;--er:#f87171;--gr:linear-gradient(135deg,#8b5cf6,#3b82f6);color-scheme:dark}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--ac)}.w{max-width:1000px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--bd)}
+nav .w{display:flex;align-items:center;gap:14px;height:56px;overflow-x:auto;white-space:nowrap}
+.lg{font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--tx)}
+.lg i{width:28px;height:28px;border-radius:50%;background:var(--gr);color:#fff;display:grid;place-items:center;font-style:normal;font-size:15px}
+nav a.l{font-size:14px;color:var(--mu);text-decoration:none}
+.hero{padding:56px 0 40px;text-align:center}
+.hero h1{font-size:clamp(34px,7vw,60px);line-height:1.1;margin:0 0 14px;background:var(--gr);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:620px;margin:0 auto 22px;color:var(--mu);font-size:18px}
+.bt{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 18px;background:var(--gr);color:#fff;font-weight:600}
+.bt.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}.bt:disabled{opacity:.5}.bt.s{padding:7px 12px;font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+section{padding:34px 0}h2{font-size:26px;margin:0 0 6px}.sub{color:var(--mu);margin:0 0 18px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px}
+.c b{display:block;margin-bottom:4px}.c .sm,.sm{font-size:13px;color:var(--mu)}
+.kv{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}.kv:last-child{border:0}
+.kv code,.ad{font-family:ui-monospace,Menlo,monospace;font-size:12px;overflow-wrap:anywhere;text-align:right}
+.st b{font-size:22px;display:block}
+input{width:100%;font:inherit;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);margin:6px 0 10px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}.tabs .bt{background:transparent;color:var(--mu);border:1px solid var(--bd)}.tabs .bt.on{background:var(--gr);color:#fff;border-color:transparent}
+.hide{display:none}#msg{min-height:22px;font-size:14px;overflow-wrap:anywhere;margin-top:8px}.ok{color:var(--ok)}.er{color:var(--er)}
+#chart{width:100%;height:180px;display:block;background:var(--bg);border-radius:12px}#ln{fill:none;stroke:var(--ac);stroke-width:2}
+pre{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;overflow-x:auto;font-size:12px;margin:8px 0}
+.tag{display:inline-block;font-size:11px;border-radius:99px;padding:2px 9px;border:1px solid var(--bd);color:var(--mu);margin-left:6px}.tag.d{color:var(--ok);border-color:var(--ok)}
+footer{border-top:1px solid var(--bd);padding:24px 0;text-align:center;color:var(--mu);font-size:13px}
+</style></head><body>
+<nav><div class="w"><a class="lg" href="#top"><i>E</i>EfikChain</a><a class="l" href="#network">Network</a><a class="l" href="#wallet">Wallet</a><a class="l" href="#dex">DEX</a><a class="l" href="#price">Price</a><a class="l" href="#contracts">Contracts</a><a class="l" href="#dev">Developers</a><a class="l" href="#roadmap">Roadmap</a></div></nav>
+
+<div class="w" id="top"><div class="hero">
+<h1>Your own blockchain.<br>Open for everyone to build on.</h1>
+<p>EfikChain is an EVM-compatible mainnet with its own coin, EFIK, a wrapped token, a working DEX and a block explorer. Connect a wallet and start using it now.</p>
+<div class="row"><button class="bt" id="cb">Connect wallet</button><a class="bt g" style="text-decoration:none" href="#dex">Open the DEX</a><a class="bt g" style="text-decoration:none" href="https://explorer.efikcoin.com" target="_blank" rel="noopener">Explorer</a></div>
+<div class="sm" id="ac" style="margin-top:12px">Wallet not connected</div></div>
+
+<div class="g3 st">
+<div class="c"><span class="sm">Chain ID</span><b>199714</b></div>
+<div class="c"><span class="sm">Native coin</span><b>EFIK</b></div>
+<div class="c"><span class="sm">Latest block</span><b id="s1">–</b></div>
+<div class="c"><span class="sm">Gas price</span><b id="s2">–</b></div></div>
+<div class="sm" style="margin-top:6px">Live block and gas figures load after you connect your wallet.</div>
+
+<section id="network"><h2>Network</h2><p class="sub">Everything a wallet or app needs to talk to EfikChain Mainnet.</p>
+<div class="c" id="nk"></div>
+<div class="row" style="margin-top:12px;justify-content:flex-start"><button class="bt" id="an">Add EfikChain to wallet</button><button class="bt g" id="aw">Add WEFIK to wallet</button></div></section>
+
+<section id="wallet"><h2>Your wallet</h2><p class="sub">Balances on EfikChain.</p>
+<div class="g3"><div class="c"><span class="sm">EFIK balance</span><b id="b1" style="font-size:22px">–</b></div><div class="c"><span class="sm">WEFIK balance</span><b id="b2" style="font-size:22px">–</b></div></div></section>
+
+<section id="dex"><h2>DEX</h2><p class="sub">Wrap EFIK and swap tokens through the EfikChain Router (Uniswap V2 style).</p>
+<div class="c"><div class="tabs"><button class="bt on" id="t1">Wrap</button><button class="bt" id="t2">Swap</button></div>
+<div id="p1"><div class="sm">Wrap EFIK into WEFIK (1:1), or unwrap back.</div><input id="wa" inputmode="decimal" placeholder="Amount">
+<div class="row" style="justify-content:flex-start"><button class="bt" id="wr">Wrap EFIK → WEFIK</button><button class="bt g" id="uw">Unwrap</button></div></div>
+<div id="p2" class="hide"><div class="sm">From token address</div><input id="inA"><div class="sm">To token address</div><input id="outA" placeholder="0x… token contract"><div class="sm">Amount in</div><input id="am" inputmode="decimal" placeholder="Amount">
+<div id="q" class="sm" style="margin-bottom:10px"></div><div class="row" style="justify-content:flex-start"><button class="bt g" id="qb">Get quote</button><button class="bt" id="sw">Swap</button></div>
+<div class="sm" style="margin-top:8px">Slippage 1%. A liquidity pool must exist for the pair.</div></div>
+<div id="msg"></div></div></section>
+
+<section id="price"><h2>EFIK price chart</h2><p class="sub">Read live from the pool on chain. Nothing is estimated or made up.</p>
+<div class="c"><div class="sm">Quote token address (for example a stablecoin)</div><input id="qa" placeholder="0x…"><button class="bt g" id="lc">Load price chart</button>
+<div class="kv"><span id="pl">Price: –</span><span class="sm" id="pr"></span></div>
+<svg id="chart" viewBox="0 0 400 170" preserveAspectRatio="none"><path id="ln" d=""/></svg>
+<div class="sm" id="cn" style="margin-top:6px">Connect your wallet, then load the chart. A price needs a WEFIK pool with a second token and liquidity.</div></div></section>
+
+<section id="contracts"><h2>Contracts</h2><p class="sub">All verified on the explorer.</p><div class="c" id="ct"></div></section>
+
+<section id="dev"><h2>Build on EfikChain</h2><p class="sub">It is EVM-compatible, so Hardhat, Foundry, ethers and MetaMask work as usual.</p>
+<div class="g3"><div class="c"><b>Hardhat</b><pre>networks: {
+  efikchain: {
+    url: "https://rpc.efikcoin.com",
+    chainId: 199714,
+    accounts: [process.env.KEY]
+  }
+}</pre></div>
+<div class="c"><b>ethers</b><pre>const p = new ethers.providers
+ .JsonRpcProvider(
+  "https://rpc.efikcoin.com", 199714);
+await p.getBlockNumber();</pre></div>
+<div class="c"><b>Fork or build from it</b><div class="sm">The docs, genesis notes and the DEX app live in the open repository, so anyone can learn, fork and extend the ecosystem.</div><p><a href="https://github.com/Efikchain/efikchain-docs" target="_blank" rel="noopener">github.com/Efikchain/efikchain-docs</a></p></div></div></section>
+
+<section id="roadmap"><h2>Roadmap</h2><p class="sub">What is live and what is planned.</p>
+<div class="c">
+<div class="kv"><span>Mainnet, chain ID 199714, EFIK coin</span><span class="tag d">Live</span></div>
+<div class="kv"><span>Public RPC and block explorer</span><span class="tag d">Live</span></div>
+<div class="kv"><span>WEFIK, DEX Factory and Router</span><span class="tag d">Live</span></div>
+<div class="kv"><span>Chain listing in ethereum-lists (pull request open)</span><span class="tag">In review</span></div>
+<div class="kv"><span>Second token and priced liquidity pool</span><span class="tag">Planned</span></div>
+<div class="kv"><span>More independent block signers on separate machines</span><span class="tag">Planned</span></div>
+<div class="kv"><span>Supply moved to a hardware wallet or multisig</span><span class="tag">Planned</span></div>
+<div class="kv"><span>Wallet icon and token logo listings</span><span class="tag">Planned</span></div>
+</div></section></div>
+<footer><div class="w">EfikChain Mainnet · Chain ID 199714 · EFIK · <a href="https://explorer.efikcoin.com" target="_blank" rel="noopener">Explorer</a> · <a href="https://rpc.efikcoin.com" target="_blank" rel="noopener">RPC</a><br>Use at your own risk. Always check addresses before sending funds.</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script>
+var C={id:199714,hex:"0x30c22",rpc:"https://rpc.efikcoin.com",ex:"https://explorer.efikcoin.com",logo:"https://efikcoin.com/dex/logo.png",
+w:"0x57c49e28d5f291b5461d96709851555f7ce49594",f:"0x3a9a76315b562457891f994cb2ebc557ebc943b3",r:"0xed9e857fc49705956d5f4336d855e6e986aa318f"};
+var ERC=["function balanceOf(address) view returns(uint256)","function decimals() view returns(uint8)","function symbol() view returns(string)","function allowance(address,address) view returns(uint256)","function approve(address,uint256) returns(bool)"];
+var WA=["function deposit() payable","function withdraw(uint256)"].concat(ERC);
+var RA=["function getAmountsOut(uint256,address[]) view returns(uint256[])","function swapExactTokensForTokens(uint256,uint256,address[],address,uint256) returns(uint256[])"];
+var FA=["function getPair(address,address) view returns(address)"],PA=["function token0() view returns(address)"];
+var prov,sg,me,$=function(i){return document.getElementById(i)},U=ethers.utils;
+function row(k,v,cp){return '<div class="kv"><span>'+k+'</span><code>'+v+'</code>'+(cp?'<button class="bt g s" data-c="'+cp+'">Copy</button>':'')+'</div>'}
+$("nk").innerHTML=row("Network name","EfikChain Mainnet","EfikChain Mainnet")+row("Chain ID","199714 (0x30c22)","199714")+row("Currency symbol","EFIK","EFIK")+row("RPC URL",C.rpc,C.rpc)+row("Block explorer",C.ex,C.ex);
+$("ct").innerHTML=[["WEFIK (wrapped EFIK)",C.w],["Factory",C.f],["Router",C.r]].map(function(x){return '<div class="kv"><span>'+x[0]+'</span><span class="ad"><a href="'+C.ex+'/address/'+x[1]+'" target="_blank" rel="noopener">'+x[1]+'</a></span><button class="bt g s" data-c="'+x[1]+'">Copy</button></div>'}).join("");
+document.addEventListener("click",function(e){var c=e.target.getAttribute&&e.target.getAttribute("data-c");if(c&&navigator.clipboard){navigator.clipboard.writeText(c).then(function(){e.target.textContent="Copied";setTimeout(function(){e.target.textContent="Copy"},1200)}).catch(function(){})}});
+$("inA").value=C.w;
+try{var sq=localStorage.getItem("efikq");if(sq)$("qa").value=sq}catch(e){}
+function say(t,k){var s=$("msg");s.className=k||"";s.textContent=t}
+function err(e){say((e&&(e.reason||(e.data&&e.data.message)||e.message))||"Failed","er")}
+function tab(n){for(var i=1;i<3;i++){$("p"+i).classList.toggle("hide",i!==n);$("t"+i).classList.toggle("on",i===n)}say("")}
+$("t1").onclick=function(){tab(1)};$("t2").onclick=function(){tab(2)};
+async function addNet(){await ethereum.request({method:"wallet_addEthereumChain",params:[{chainId:C.hex,chainName:"EfikChain Mainnet",nativeCurrency:{name:"EFIK",symbol:"EFIK",decimals:18},rpcUrls:[C.rpc],blockExplorerUrls:[C.ex],iconUrls:[C.logo]}]})}
+async function connect(){try{
+ if(!window.ethereum)return say("No wallet found. Open this page inside your wallet’s browser.","er");
+ await ethereum.request({method:"eth_requestAccounts"});
+ var cid=await ethereum.request({method:"eth_chainId"});if(parseInt(cid,16)!==C.id)await addNet();
+ prov=new ethers.providers.Web3Provider(window.ethereum,"any");sg=prov.getSigner();me=await sg.getAddress();
+ $("ac").textContent="Connected: "+me.slice(0,8)+"…"+me.slice(-6);$("cb").textContent="Connected";refresh();stats();loadChart(true);
+}catch(e){err(e)}}
+async function refresh(){try{
+ $("b1").textContent=Number(U.formatEther(await prov.getBalance(me))).toLocaleString(undefined,{maximumFractionDigits:4});
+ $("b2").textContent=Number(U.formatEther(await new ethers.Contract(C.w,ERC,prov).balanceOf(me))).toLocaleString(undefined,{maximumFractionDigits:4});
+}catch(e){}}
+async function stats(){try{$("s1").textContent=(await prov.getBlockNumber()).toLocaleString();$("s2").textContent=Number(U.formatUnits(await prov.getGasPrice(),"gwei")).toLocaleString(undefined,{maximumFractionDigits:2})+" gwei"}catch(e){}}
+function need(){if(!sg){say("Connect your wallet first","er");return false}return true}
+function link(l,h,k){var s=$("msg");s.className=k||"";s.textContent=l+" ";var a=document.createElement("a");a.href=C.ex+"/tx/"+h;a.target="_blank";a.rel="noopener";a.textContent=h.slice(0,10)+"…"+h.slice(-8);s.appendChild(a)}
+async function tx(p,m){say("Confirm in your wallet…");var t=await p;link("Pending:",t.hash);try{await t.wait();link(m+" ✓ Success:",t.hash,"ok")}catch(e){link("Failed on chain:",t.hash,"er")}refresh()}
+$("cb").onclick=connect;$("an").onclick=async function(){try{if(!window.ethereum)return say("No wallet found. Open this page inside your wallet’s browser.","er");await addNet();say("Network added","ok")}catch(e){err(e)}};
+$("aw").onclick=async function(){try{await ethereum.request({method:"wallet_watchAsset",params:{type:"ERC20",options:{address:C.w,symbol:"WEFIK",decimals:18,image:C.logo}}});say("Check your wallet to confirm WEFIK","ok")}catch(e){err(e)}};
+$("wr").onclick=async function(){if(!need())return;try{await tx(new ethers.Contract(C.w,WA,sg).deposit({value:U.parseEther($("wa").value||"0")}),"Wrapped")}catch(e){err(e)}};
+$("uw").onclick=async function(){if(!need())return;try{await tx(new ethers.Contract(C.w,WA,sg).withdraw(U.parseEther($("wa").value||"0")),"Unwrapped")}catch(e){err(e)}};
+async function info(a){var t=new ethers.Contract(a,ERC,sg),d=18,s="TOKEN";try{d=await t.decimals()}catch(e){}try{s=await t.symbol()}catch(e){}return{t:t,d:d,s:s}}
+async function quote(){var a=$("inA").value.trim().toLowerCase(),b=$("outA").value.trim().toLowerCase();
+ if(!U.isAddress(a)||!U.isAddress(b))throw new Error("Enter valid token addresses");
+ var i=await info(a),o=await info(b),v=U.parseUnits($("am").value||"0",i.d),r=new ethers.Contract(C.r,RA,sg),out=(await r.getAmountsOut(v,[a,b]))[1];
+ $("q").textContent="You receive about "+U.formatUnits(out,o.d)+" "+o.s;return{a:a,b:b,i:i,v:v,out:out,r:r}}
+$("qb").onclick=async function(){if(!need())return;try{await quote();say("")}catch(e){err(e)}};
+$("sw").onclick=async function(){if(!need())return;try{var q=await quote(),al=await q.i.t.allowance(me,C.r);
+ if(al.lt(q.v)){say("Approve the token in your wallet…");await(await q.i.t.approve(C.r,q.v)).wait()}
+ await tx(q.r.swapExactTokensForTokens(q.v,q.out.mul(99).div(100),[q.a,q.b],me,Math.floor(Date.now()/1000)+1200,{gasLimit:500000}),"Swap complete")}catch(e){err(e)}};
+async function loadChart(quiet){
+ if(!prov){if(!quiet)say("Connect your wallet first","er");return}
+ var q=$("qa").value.trim().toLowerCase();
+ if(!U.isAddress(q)){$("cn").textContent="Enter the quote token address to see the price.";return}
+ try{try{localStorage.setItem("efikq",q)}catch(e){}
+  $("cn").textContent="Loading…";
+  var pair=await new ethers.Contract(C.f,FA,prov).getPair(C.w,q);
+  if(/^0x0+$/.test(pair)){$("ln").setAttribute("d","");$("pl").textContent="Price: –";$("pr").textContent="";$("cn").textContent="No WEFIK / quote-token pool exists yet. Create the pool and add liquidity, then the chart appears.";return}
+  var qd=18;try{qd=await new ethers.Contract(q,ERC,prov).decimals()}catch(e){}
+  var wIs0=(await new ethers.Contract(pair,PA,prov).token0()).toLowerCase()===C.w;
+  var logs=await prov.getLogs({address:pair,topics:[U.id("Sync(uint112,uint112)")],fromBlock:0,toBlock:"latest"});
+  var pts=logs.slice(-300).map(function(l){var d=U.defaultAbiCoder.decode(["uint112","uint112"],l.data),w=parseFloat(U.formatEther(wIs0?d[0]:d[1]));return w>0?parseFloat(U.formatUnits(wIs0?d[1]:d[0],qd))/w:null}).filter(function(x){return x!==null});
+  if(!pts.length){$("cn").textContent="Pool found but it has no liquidity yet.";return}
+  var mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts),sp=(mx-mn)||mn||1,n=pts.length;
+  var d=pts.map(function(p,i){return(i?"L":"M")+(n>1?i/(n-1)*400:200).toFixed(1)+" "+(160-((p-mn)/sp)*150).toFixed(1)}).join(" ");
+  if(n===1)d+=" L400 "+(160-((pts[0]-mn)/sp)*150).toFixed(1);
+  $("ln").setAttribute("d",d);$("pl").textContent="Price: "+pts[n-1].toPrecision(6);$("pr").textContent="Low "+mn.toPrecision(4)+" · High "+mx.toPrecision(4);
+  $("cn").textContent=n+" pool updates (each swap or liquidity change).";
+ }catch(e){$("cn").textContent="Could not load the chart: "+((e&&e.message)||"error")}}
+$("lc").onclick=function(){loadChart(false)};
+if(window.ethereum){ethereum.on&&ethereum.on("accountsChanged",function(){location.reload()});ethereum.on&&ethereum.on("chainChanged",function(){location.reload()})}
+</script></body></html>
