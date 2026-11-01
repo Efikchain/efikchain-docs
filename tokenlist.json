@@ -1,10 +1,10 @@
 {
   "name": "EfikChain Token List",
-  "timestamp": "2026-10-31T21:18:28.745Z",
+  "timestamp": "2026-11-01T04:36:56.129Z",
   "version": {
     "major": 1,
     "minor": 0,
-    "patch": 0
+    "patch": 1
   },
   "keywords": [
     "efikchain",
@@ -17,6 +17,14 @@
       "address": "0x57c49E28d5F291B5461D96709851555F7Ce49594",
       "name": "Wrapped EFIK",
       "symbol": "WEFIK",
+      "decimals": 18,
+      "logoURI": "https://efikcoin.com/assets/logo-256.png"
+    },
+    {
+      "chainId": 199714,
+      "address": "0xcC20fc280ccbe1cb124c434c36DBBee946e05a83",
+      "name": "Efik Utility",
+      "symbol": "EUT",
       "decimals": 18,
       "logoURI": "https://efikcoin.com/assets/logo-256.png"
     }
