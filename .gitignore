@@ -1,0 +1,10 @@
+.DS_Store
+*.key
+*.enc
+*.pem
+.env
+*keystore*
+mykey*
+keys.*
+*.bak*
+*.old-site
