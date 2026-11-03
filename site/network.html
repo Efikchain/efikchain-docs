@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Network</title><link rel="stylesheet" href="assets/style.css"></head>
+<body><main class="w">
+<h1>Network</h1>
+<p class="lead">Connect a wallet or tool to <span data-cfg="name"></span>.</p>
+<button class="btn" id="add">Add to wallet</button><div class="msg" id="addmsg"></div>
+<div class="c">
+<div class="row"><span>Network name</span><code data-cfg="name"></code><button class="cp" data-copy="name">Copy</button></div>
+<div class="row"><span>RPC URL</span><code data-cfg="rpc"></code><button class="cp" data-copy="rpc">Copy</button></div>
+<div class="row"><span>Chain ID</span><code data-cfg="chainId"></code><button class="cp" data-copy="chainId">Copy</button></div>
+<div class="row"><span>Currency symbol</span><code data-cfg="symbol"></code><button class="cp" data-copy="symbol">Copy</button></div>
+<div class="row"><span>Block explorer</span><code data-cfg="explorer"></code><button class="cp" data-copy="explorer">Copy</button></div>
+</div>
+<p class="msg">If your wallet app refuses to save the network, try MetaMask, or open this page inside the wallet browser and tap Add to wallet.</p>
+</main><script src="assets/config.js"></script><script src="assets/app.js"></script></body></html>

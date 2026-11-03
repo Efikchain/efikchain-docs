@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EUT / WEFIK</title>
+<style>body{margin:0;background:#0b1220;color:#e6e9f2;font-family:system-ui,sans-serif;padding:16px}.c{max-width:760px;margin:auto}h1{font-size:20px}.p{font-size:30px;font-weight:700}.s{color:#8a94ad;font-size:13px}canvas{width:100%;height:240px;background:#111a2e;border-radius:12px;margin:12px 0}table{width:100%;font-size:13px;border-collapse:collapse}td{padding:6px 0;border-bottom:1px solid #1d2840}.b{color:#2ecc8f}.r{color:#ff6b6b}</style></head><body><div class="c">
+<h1><img src="/assets/logo-256.png" width="28" style="vertical-align:middle;border-radius:50%"> EUT / WEFIK</h1>
+<div class="p" id="px">Loading...</div><div class="s" id="rs"></div>
+<canvas id="cv"></canvas><div class="s" id="note"></div>
+<h3>Recent swaps</h3><table id="tb"></table></div>
+<script>
+var RPC="https://rpc.efikcoin.com",POOL="0xF6b19745201B6BaE8A260C94f80FE825422882F7";
+var SYNC="0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbe1cd",SWAP="0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822";
+function rpc(m,p){return fetch(RPC,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method:m,params:p})}).then(function(r){return r.json()}).then(function(j){if(j.error)throw new Error(j.error.message);return j.result})}
+function num(h){return Number(BigInt("0x"+h))/1e18}
+function words(d){d=d.slice(2);var o=[];for(var i=0;i<d.length;i+=64)o.push(d.slice(i,i+64));return o}
+function draw(pts){var c=document.getElementById("cv"),d=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;c.width=W*d;c.height=H*d;var x=c.getContext("2d");x.scale(d,d);
+if(pts.length<2){x.fillStyle="#8a94ad";x.fillText("Not enough trades yet",12,24);return}
+var mn=Math.min.apply(null,pts),mx=Math.max.apply(null,pts);if(mx==mn){mx+=1;mn-=1}
+x.strokeStyle="#8b5cf6";x.lineWidth=2;x.beginPath();
+pts.forEach(function(v,i){var X=10+i*(W-20)/(pts.length-1),Y=H-20-(v-mn)*(H-40)/(mx-mn);i?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke();
+x.fillStyle="#8a94ad";x.font="11px sans-serif";x.fillText(mx.toFixed(4),10,12);x.fillText(mn.toFixed(4),10,H-4)}
+async function load(){
+try{
+var w=words(await rpc("eth_call",[{to:POOL,data:"0x0902f1ac"},"latest"])),a=num(w[0]),b=num(w[1]);
+document.getElementById("px").textContent="1 EUT = "+(a/b).toFixed(4)+" WEFIK";
+document.getElementById("rs").textContent="Pool: "+a.toFixed(2)+" WEFIK + "+b.toFixed(2)+" EUT";
+var logs=await rpc("eth_getLogs",[{address:POOL,fromBlock:"0x0",toBlock:"latest",topics:[[SYNC,SWAP]]}]);
+var pts=[];logs.forEach(function(l){if(l.topics[0]==SWAP){var q=words(l.data),w=num(q[0])+num(q[2]),e=num(q[1])+num(q[3]);if(e>0)pts.push(w/e)}});pts.push(a/b);
+draw(pts);document.getElementById("note").textContent="Price in WEFIK per EUT, "+pts.length+" points since the pool was created. No dollar value: no USD-priced pool exists yet.";
+var sw=logs.filter(function(l){return l.topics[0]==SWAP}).slice(-10).reverse();
+var ts=await Promise.all(sw.map(function(l){return rpc("eth_getBlockByNumber",[l.blockNumber,false]).then(function(k){return parseInt(k.timestamp,16)})}));
+var h="";sw.forEach(function(l,i){var q=words(l.data),buy=num(q[3])>0,amt=buy?num(q[3]):num(q[1]);
+h+="<tr><td class='"+(buy?"b":"r")+"'>"+(buy?"Bought ":"Sold ")+amt.toFixed(2)+" EUT</td><td class='s'>"+new Date(ts[i]*1000).toLocaleString()+"</td></tr>"});
+document.getElementById("tb").innerHTML=h||"<tr><td class='s'>No swaps yet</td></tr>";
+}catch(e){document.getElementById("px").textContent="Could not load data";document.getElementById("note").textContent=String(e.message||e)}}
+load();setInterval(load,30000);
+</script></body></html>

@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EfikChain Developers</title><link rel="icon" href="/assets/logo-256.png"><link rel="stylesheet" href="/site.css"></head><body>
+<header><div class="wrap nav"><a class="brand" href="/"><img src="/assets/logo-256.png" alt="">EfikChain</a><nav aria-label="Main"><a href="/">Home</a><a href="/wallet/">Wallet</a><a href="/dex/">DEX</a><a href="https://explorer.efikcoin.com">Explorer</a><a href="/whitepaper.html">Whitepaper</a></nav></div></header>
+<main class="wrap doc"><h1>Build on EfikChain</h1><p>EfikChain is EVM compatible. Your usual tools work with a different RPC URL and chain ID.</p>
+<div class="card"><table><tr><td>Network name</td><td>EfikChain Mainnet</td></tr><tr><td>Chain ID</td><td class="code">199714 (0x30c22)</td></tr><tr><td>Currency</td><td>EFIK, 18 decimals</td></tr><tr><td>RPC</td><td class="code">https://rpc.efikcoin.com</td></tr><tr><td>Explorer</td><td class="code">https://explorer.efikcoin.com</td></tr></table><p><a class="btn" href="/connect/">Add to a wallet</a></p></div>
+<h2>ethers.js</h2><pre class="card code" style="overflow:auto">const provider = new ethers.JsonRpcProvider("https://rpc.efikcoin.com", 199714);
+const balance = await provider.getBalance("0xYourAddress");</pre>
+<h2>Hardhat</h2><pre class="card code" style="overflow:auto">networks: {
+  efikchain: {
+    url: "https://rpc.efikcoin.com",
+    chainId: 199714,
+    accounts: [process.env.PRIVATE_KEY]
+  }
+}</pre>
+<h2>Foundry</h2><pre class="card code" style="overflow:auto">forge create src/MyToken.sol:MyToken \
+  --rpc-url https://rpc.efikcoin.com \
+  --private-key $PRIVATE_KEY</pre>
+<p class="note">Keep private keys in environment variables, never in code or in a public repository. The explorer is Blockscout, so contract verification uses the Blockscout API at explorer.efikcoin.com/api/.</p>
+<h2>Contracts</h2><div class="card"><table><tr><th>Name</th><th>Address</th></tr>
+<tr><td>WEFIK</td><td class="code">0x57c49E28d5F291B5461D96709851555F7Ce49594</td></tr>
+<tr><td>EUT</td><td class="code">0xcC20fc280ccbe1cb124c434c36DBBee946e05a83</td></tr>
+<tr><td>Factory</td><td class="code">0x3A9A76315b562457891F994CB2Ebc557EbC943b3</td></tr>
+<tr><td>Router</td><td class="code">0xeD9E857Fc49705956D5f4336d855e6E986aa318F</td></tr>
+<tr><td>WEFIK / EUT pool</td><td class="code">0xF6b19745201B6BaE8A260C94f80FE825422882F7</td></tr></table></div>
+<h2>Source and docs</h2><p><a href="https://github.com/Efikchain/efikchain-docs">github.com/Efikchain/efikchain-docs</a></p></main>
+<footer><div class="wrap">EfikChain | <a href="/">Home</a> | <a href="/whitepaper.html">Whitepaper</a></div></footer></body></html>
