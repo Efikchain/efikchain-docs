@@ -1,0 +1,11 @@
+[Unit]
+Description=EfikP2P details vault and timekeeper
+After=network-online.target
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/efik-p2p/vault
+ExecStart=/usr/bin/node vault.js
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

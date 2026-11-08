@@ -1,0 +1,9 @@
+.env
+*.env
+vault/data.json
+vault/chat.json
+vault/status.json
+node_modules/
+artifacts/
+cache/
+*.bak*

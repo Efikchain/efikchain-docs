@@ -1,0 +1,45 @@
+server {
+    server_name efikcoin.com www.efikcoin.com app.efikcoin.com;
+    root /var/www/efik;
+    location /p2papi/ {
+        proxy_pass http://127.0.0.1:8787/;
+        proxy_set_header X-Real-IP $http_cf_connecting_ip;
+        client_max_body_size 4k;
+    }
+    location = /tokenlist.json {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "public, max-age=300" always;
+    }
+    location /assets/ {
+        add_header Access-Control-Allow-Origin "*" always;
+    }
+    index index.html;
+    location / { try_files $uri $uri/ =404; }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/efikcoin.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/efikcoin.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+server {
+    if ($host = www.efikcoin.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = efikcoin.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    server_name efikcoin.com www.efikcoin.com app.efikcoin.com;
+    return 404; # managed by Certbot
+
+
+
+
+}
