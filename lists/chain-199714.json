@@ -1,0 +1,13 @@
+{
+  "name": "Efikchain Mainnet",
+  "chain": "EFIK",
+  "chainId": 199714,
+  "networkId": 199714,
+  "shortName": "efik",
+  "rpc": ["https://rpc.efikcoin.com"],
+  "nativeCurrency": { "name": "EFIK", "symbol": "EFIK", "decimals": 18 },
+  "infoURL": "https://efikcoin.com",
+  "explorers": [
+    { "name": "EfikChain Explorer", "url": "https://explorer.efikcoin.com", "standard": "EIP3091" }
+  ]
+}

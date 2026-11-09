@@ -12,6 +12,8 @@ if(KEY.length!==32){console.error('VAULT_KEY missing');process.exit(1)}
 const DB=__dirname+'/data.json',STF=__dirname+'/status.json';
 let db={};try{db=JSON.parse(fs.readFileSync(DB,'utf8'))}catch(e){}
 const CH=__dirname+'/chat.json';let chat={};try{chat=JSON.parse(fs.readFileSync(CH,'utf8'))}catch(e){}
+const PF=__dirname+'/proofs.json';let proofs={};try{proofs=JSON.parse(fs.readFileSync(PF,'utf8'))}catch(e){}
+const body2=(req,max)=>new Promise((ok,no)=>{let b='';req.on('data',d=>{b+=d;if(b.length>max){no(new Error('big'));req.destroy()}});req.on('end',()=>ok(b));req.on('error',no)});
 const wr=(f,o)=>{fs.writeFileSync(f+'.tmp',JSON.stringify(o));fs.renameSync(f+'.tmp',f)};
 function enc(t){const iv=crypto.randomBytes(12),ci=crypto.createCipheriv('aes-256-gcm',KEY,iv),b=Buffer.concat([ci.update(t,'utf8'),ci.final()]);return Buffer.concat([iv,ci.getAuthTag(),b]).toString('base64')}
 function dec(s){const b=Buffer.from(s,'base64'),d=crypto.createDecipheriv('aes-256-gcm',KEY,b.subarray(0,12));d.setAuthTag(b.subarray(12,28));return Buffer.concat([d.update(b.subarray(28)),d.final()]).toString('utf8')}
@@ -60,6 +62,27 @@ http.createServer(async(req,res)=>{
    if(!ok)return send(res,403,{error:'not allowed'});
    let a=[];try{a=JSON.parse(dec(chat['c'+id]))}catch(e){}
    return send(res,200,{messages:a});
+  }
+    if(req.method==='POST'&&u.pathname==='/proof/put'){
+   const b=JSON.parse(await body2(req,600000)),id=Number(b.id),ts=Number(b.ts),img=String(b.img||''),note=String(b.note||'').slice(0,300);
+   if(!(id>0)||!(Math.abs(Date.now()/1000-ts)<300)||img.length>450000||(img&&!/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(img))||(!img&&!note))return send(res,400,{error:'bad request'});
+   const h=ethers.keccak256(ethers.toUtf8Bytes(img+'|'+note)),who=ethers.verifyMessage('EfikP2P proof:'+id+':'+ts+':'+h,String(b.sig));
+   const o=await c.offers(id),s=Number(o.status);
+   if(!(s>=2&&s<=4&&(who===o.seller||who===o.buyer)))return send(res,403,{error:'not allowed'});
+   const k='p'+id;let a=[];try{a=JSON.parse(dec(proofs[k]))}catch(e){}
+   if(a.length>=10)return send(res,400,{error:'too many'});
+   a.push({f:who,role:who===o.seller?'seller':'buyer',note:note,img:img,ts:Math.floor(Date.now()/1000)});
+   proofs[k]=enc(JSON.stringify(a));wr(PF,proofs);
+   return send(res,200,{ok:true});
+  }
+  if(req.method==='GET'&&u.pathname==='/proof/list'){
+   const id=Number(u.searchParams.get('id')),ts=Number(u.searchParams.get('ts'));
+   if(!(id>0)||!(Math.abs(Date.now()/1000-ts)<300))return send(res,400,{error:'bad request'});
+   const who=ethers.verifyMessage('EfikP2P proofread:'+id+':'+ts,String(u.searchParams.get('sig'))),o=await c.offers(id),s=Number(o.status);
+   const ok=(s>=2&&s<=5&&(who===o.seller||who===o.buyer))||(s===4&&who===await c.arbiter());
+   if(!ok)return send(res,403,{error:'not allowed'});
+   let a=[];try{a=JSON.parse(dec(proofs['p'+id]))}catch(e){}
+   return send(res,200,{proofs:a});
   }
   send(res,404,{error:'no'});
  }catch(e){send(res,400,{error:'bad request'})}

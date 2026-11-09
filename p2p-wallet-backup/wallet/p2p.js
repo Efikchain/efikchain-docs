@@ -6,7 +6,7 @@ var Z=V6?ethers.ZeroAddress:ethers.constants.AddressZero;
 var fE=V6?ethers.formatEther:ethers.utils.formatEther,pE=V6?ethers.parseEther:ethers.utils.parseEther;
 function kc(t){return V6?ethers.keccak256(ethers.toUtf8Bytes(t)):ethers.utils.keccak256(ethers.utils.toUtf8Bytes(t))}
 var ST=['None','Open','Taken','Paid','Disputed','Completed','Cancelled'];
-var ABI=["function offerCount() view returns (uint256)","function offers(uint256) view returns (address seller,address buyer,address token,uint256 amount,uint64 payWindow,uint64 deadline,uint64 paidAt,uint64 disputedAt,uint8 status,string terms)","function createOffer(address token,uint256 amount,uint64 payWindow,string terms) payable returns (uint256)","function take(uint256)","function markPaid(uint256)","function release(uint256)","function cancelOffer(uint256)","function reclaim(uint256)","function dispute(uint256)","event OfferCreated(uint256 indexed id,address indexed seller,address token,uint256 amount,uint64 payWindow,string terms)"];
+var ABI=["function offerCount() view returns (uint256)","function offers(uint256) view returns (address seller,address buyer,address token,uint256 amount,uint64 payWindow,uint64 deadline,uint64 paidAt,uint64 disputedAt,uint8 status,string terms)","function createOffer(address token,uint256 amount,uint64 payWindow,string terms) payable returns (uint256)","function take(uint256)","function markPaid(uint256)","function release(uint256)","function cancelOffer(uint256)","function reclaim(uint256)","function dispute(uint256)","function resolve(uint256,bool)","function arbiter() view returns (address)","event OfferCreated(uint256 indexed id,address indexed seller,address token,uint256 amount,uint64 payWindow,string terms)"];
 var BANKS=['Access Bank','Zenith Bank','GTBank','First Bank','UBA','Fidelity Bank','FCMB','Union Bank','Sterling Bank','Stanbic IBTC','Wema Bank','Polaris Bank','Keystone Bank','Ecobank','Heritage Bank','Unity Bank','Providus Bank','Jaiz Bank'],FIN=['Opay','PalmPay','Moniepoint','Kuda'],CUR=['NGN','USD','GHS','KES','ZAR','EUR','GBP'];
 var CODES={'Access Bank':'044','Zenith Bank':'057','GTBank':'058','First Bank':'011','UBA':'033','Fidelity Bank':'070','FCMB':'214','Union Bank':'032','Sterling Bank':'232','Stanbic IBTC':'221','Wema Bank':'035','Polaris Bank':'076','Keystone Bank':'082','Ecobank':'050','Heritage Bank':'030','Unity Bank':'215','Providus Bank':'101','Jaiz Bank':'301'};
 function chk(bank,ac){
@@ -106,7 +106,17 @@ function renderOffer(i,f,me,has,vOk){
  if(st===3){if(isB)btn('Show payment details',function(){showDetails(i,box)});if(isS)btn('Release EFIK',call('release',relQ));
   if(isS||isB)btn('Open dispute',call('dispute','Open a dispute? The arbiter will decide. Continue?'))}
  if(st===4){if(isB)btn('Show payment details',function(){showDetails(i,box)});if(isS)btn('Release EFIK',call('release',relQ))}
- var cbox=mk('div',null,'margin-top:8px');if(st>=2&&st<=5&&(isS||isB))btn('Chat',function(){chatToggle(i,cbox)});if(r.firstChild)d.appendChild(r);d.appendChild(box);d.appendChild(cbox);return d;
+ var cbox=mk('div',null,'margin-top:8px');var isA=me&&me===ARB;
+ if(st>=2&&st<=5&&(isS||isB||(isA&&st===4)))btn('Chat',function(){chatToggle(i,cbox)});
+ var pbox=mk('div',null,'margin-top:8px');
+ if(st>=2&&st<=4&&isB)btn('Add proof of payment',function(){proofAdd(i,pbox)});
+ if(st>=2&&st<=4&&isS)btn('Add my proof or note',function(){proofAdd(i,pbox)});
+ if(st>=2&&st<=5&&(isS||isB||(isA&&st===4)))btn('View proofs',function(){proofView(i,pbox)});
+ if(isA&&st===4){
+  btn('Pay the buyer',function(){if(confirm('As arbiter you decide this dispute. This sends the EFIK to the BUYER and cannot be undone. Continue?'))act(function(){return ct().resolve(i,true)})});
+  btn('Refund the seller',function(){if(confirm('As arbiter you decide this dispute. This returns the EFIK to the SELLER and cannot be undone. Continue?'))act(function(){return ct().resolve(i,false)})});
+ }
+ if(r.firstChild)d.appendChild(r);d.appendChild(box);d.appendChild(cbox);d.appendChild(pbox);return d;
 }
 async function load(){
  list.textContent='Loading…';
@@ -116,7 +126,19 @@ async function load(){
   var n=num(await ct().offerCount());list.textContent='';
   if(!n){list.textContent='No offers yet. Post the first one.';return}
   var me=W0()?W0().address.toLowerCase():'';
-  for(var i=n;i>Math.max(0,n-15);i--){var f=await ct().offers(i);list.appendChild(renderOffer(i,f,me,has,vOk))}
+  try{ARB=String(await ct().arbiter()).toLowerCase()}catch(e){}
+  var mine=mk('div'),open=mk('div'),nm=0,no=0;
+  for(var i=n;i>Math.max(0,n-60);i--){
+   var f=await ct().offers(i),st=num(f.status),isP=me&&(f.seller.toLowerCase()===me||f.buyer.toLowerCase()===me),isA=me&&me===ARB&&st===4;
+   if(isP||isA){mine.appendChild(renderOffer(i,f,me,has,vOk));nm++}
+   else if(st===1){open.appendChild(renderOffer(i,f,me,has,vOk));no++}
+  }
+  list.appendChild(mk('h4','My trades',null));
+  if(!nm)list.appendChild(mk('div','You have no trades yet.','color:#93a08a;font-size:14px'));
+  list.appendChild(mine);
+  list.appendChild(mk('h4','Open offers',null));
+  if(!no)list.appendChild(mk('div','No open offers right now.','color:#93a08a;font-size:14px'));
+  list.appendChild(open);
   tick();
  }catch(e){list.textContent='Could not load offers: '+er(e)}
 }
@@ -231,6 +253,55 @@ async function usdTick(){
  }catch(e){}
 }
 setTimeout(usdTick,3000);setInterval(usdTick,15000);
+var ARB='';
+function shrink(file,cb){
+ var rd=new FileReader();
+ rd.onload=function(){var im=new Image();im.onload=function(){
+  var sc=Math.min(1,1000/Math.max(im.width,im.height)),cv=document.createElement('canvas');
+  cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
+  cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);cb(cv.toDataURL('image/jpeg',0.6))};
+  im.onerror=function(){cb(null)};im.src=rd.result};
+ rd.onerror=function(){cb(null)};rd.readAsDataURL(file);
+}
+async function proofSend(id,img,note){
+ var ts=Math.floor(Date.now()/1000),sig=await W0().signMessage('EfikP2P proof:'+id+':'+ts+':'+kc(img+'|'+note));
+ var r=await fetch('/p2papi/proof/put',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:id,ts:ts,img:img,note:note,sig:sig})});
+ if(!r.ok)throw new Error(r.status===413?'Photo too large.':'Proof not saved. Proofs can be added only while the trade is active.');
+}
+function proofAdd(id,box){
+ box.textContent='';
+ var f=mk('input'),n=mk('input'),b=mk('button','Upload proof');
+ f.type='file';f.accept='image/*';n.placeholder='Short note (optional)';n.maxLength=300;
+ box.appendChild(mk('div','Choose a photo or screenshot of the payment receipt or bank alert. It is stored encrypted. Only the buyer, seller and arbiter can see it.','color:#93a08a;font-size:14px'));
+ box.appendChild(f);box.appendChild(n);box.appendChild(b);
+ b.onclick=function(){
+  var note=n.value.trim().slice(0,300);
+  if(!f.files[0]&&!note){say('Choose a photo or write a note.',1);return}
+  b.disabled=true;say('Preparing photo…');
+  function go(img){(async function(){try{
+   if(f.files[0]&&!img)throw new Error('Could not read that photo. Try a screenshot.');
+   if(img&&img.length>440000)throw new Error('Photo is too large. Try a screenshot.');
+   await proofSend(id,img||'',note);say('Proof saved.');box.textContent='';
+  }catch(e){say(er(e),1)}b.disabled=false})()}
+  if(f.files[0])shrink(f.files[0],go);else go('');
+ };
+}
+async function proofView(id,box){
+ if(box.firstChild){box.textContent='';return}
+ try{
+  var ts=Math.floor(Date.now()/1000),sig=await W0().signMessage('EfikP2P proofread:'+id+':'+ts);
+  var r=await fetch('/p2papi/proof/list?id='+id+'&ts='+ts+'&sig='+encodeURIComponent(sig),{cache:'no-store'}),j=await r.json();
+  if(!j.proofs)throw new Error('Proofs are not available to you on this trade.');
+  if(!j.proofs.length){box.appendChild(mk('div','No proof uploaded yet.','color:#93a08a'));return}
+  j.proofs.forEach(function(p){
+   var c=mk('div',null,'border:1px solid #2a3626;border-radius:8px;padding:8px;margin:6px 0');
+   c.appendChild(mk('div',(p.role==='buyer'?'Buyer':'Seller')+' · '+new Date(p.ts*1000).toLocaleString(),'color:#93a08a;font-size:13px'));
+   if(p.note)c.appendChild(mk('div',p.note,'word-break:break-word'));
+   if(p.img){var im=document.createElement('img');im.src=p.img;im.style.cssText='max-width:100%;border-radius:6px;margin-top:6px';c.appendChild(im)}
+   box.appendChild(c);
+  });
+ }catch(e){say(er(e),1)}
+}
 var dp=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js',{scope:'/wallet/'}).catch(function(){});
 window.EfikP2P={open:function(){if(!o)build();o.style.display='block';load()},openMode:function(){window.EfikP2P.open()}};

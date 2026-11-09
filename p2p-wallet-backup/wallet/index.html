@@ -78,4 +78,4 @@ if(!rows.length){el.innerHTML='<div class="t">No transactions yet</div>';return}
 rows.slice(0,30).forEach(function(r){var x=document.createElement("a");x.className="tx";x.href=EXP+"/tx/"+r.h;x.target="_blank";var s1=document.createElement("span");s1.textContent=r.lb+(r.bad?" (failed)":"");var s2=document.createElement("span");s2.className="t";s2.textContent=new Date(r.ts).toLocaleString();x.appendChild(s1);x.appendChild(s2);el.appendChild(x)});
 }catch(x){el.innerHTML='<a class="tx" href="'+EXP+'/address/'+W.address+'" target="_blank">Could not load here. Open your history in the explorer</a>'}}
 show(stored()?"unlock":"start");
-</script><script src="browser.js?v=1"></script><script src="dashboard.js?v=1"></script><script src="networks.js?v=1"></script><script src="p2p.js?v=10"></script></body></html>
+</script><script src="browser.js?v=1"></script><script src="dashboard.js?v=1"></script><script src="networks.js?v=1"></script><script src="p2p.js?v=11"></script></body></html>
