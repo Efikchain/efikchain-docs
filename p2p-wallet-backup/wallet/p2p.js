@@ -26,7 +26,7 @@ function sg(){var w=W0();return w?w.connect(ro):null}
 function ct(){return new ethers.Contract(P2P,ABI,sg()||ro)}
 function sh(a){return a.slice(0,6)+'…'+a.slice(-4)}
 function num(x){return Number(String(x))}
-function say(t,e){msg.textContent=t;msg.style.color=e?'#ff8a7a':'#93a08a'}
+function say(t,e){try{msg.textContent=t;msg.style.color=e?'#ff8a7a':'#93a08a'}catch(x){}try{var z=document.getElementById('p2toast');if(!z){z=document.createElement('div');z.id='p2toast';z.style.cssText='position:fixed;top:12px;left:12px;right:12px;z-index:99998;padding:12px 14px;border-radius:12px;font-size:15px;font-weight:600;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.5)';document.body.appendChild(z)}z.textContent=t;z.style.background=e?'#7a1f1f':'#1c2a18';z.style.color=e?'#ffd2cc':'#d8f24a';z.style.display='block';clearTimeout(z._t);z._t=setTimeout(function(){z.style.display='none'},e?9000:5000)}catch(x){}}
 function er(e){return e.reason||(e.error&&e.error.message)||e.shortMessage||e.message}
 function mk(tag,txt,css){var d=document.createElement(tag);if(txt)d.textContent=txt;if(css)d.style.cssText=css;return d}
 async function act(fn){
