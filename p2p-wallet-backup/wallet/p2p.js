@@ -21,6 +21,7 @@ function chk(bank,ac){
 }
 var o,msg,list,hd,price=null;
 function W0(){return (typeof W!=='undefined'&&W&&W.address)?W:null}
+async function WS(m){var w=W0();if(!w)throw new Error('Wallet locked. Unlock it, then reopen P2P.');return w.signMessage(m)}
 function sg(){var w=W0();return w?w.connect(ro):null}
 function ct(){return new ethers.Contract(P2P,ABI,sg()||ro)}
 function sh(a){return a.slice(0,6)+'…'+a.slice(-4)}
@@ -53,7 +54,7 @@ function fmtLeft(s){var h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h>0?
 function cd(l,ts){var s=mk('span');s.setAttribute('data-ts',ts);s.setAttribute('data-l',l);return s}
 function tick(){var n=Math.floor(Date.now()/1000);document.querySelectorAll('#efikp2p [data-ts]').forEach(function(s){var l=Number(s.getAttribute('data-ts'))-n;s.textContent=s.getAttribute('data-l')+': '+(l<=0?'time is up':fmtLeft(l))})}
 async function upload(id,d){
- var h=kc(d),sig=await W0().signMessage('EfikP2P put:'+id+':'+h);
+ var h=kc(d),sig=await WS('EfikP2P put:'+id+':'+h);
  var r=await fetch('/p2papi/put',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:id,details:d,sig:sig})});
  if(!r.ok)throw new Error('Could not save payment details. Use the Save payment details button on the offer, or cancel it.');
  localStorage.removeItem('p2pd'+id);
@@ -66,7 +67,7 @@ function idFrom(rc){
 async function showDetails(id,box){
  if(!W0()){say('Unlock your wallet first.',1);return}
  try{
-  say('Checking…');var ts=Math.floor(Date.now()/1000),sig=await W0().signMessage('EfikP2P read:'+id+':'+ts);
+  say('Checking…');var ts=Math.floor(Date.now()/1000),sig=await WS('EfikP2P read:'+id+':'+ts);
   var r=await fetch('/p2papi/get?id='+id+'&ts='+ts+'&sig='+encodeURIComponent(sig),{cache:'no-store'}),j=await r.json();
   if(!j.details)throw new Error(j.error==='not allowed'?'Only the buyer of a taken offer can see these details.':'Details are not available.');
   var p=j.details.split('|');box.textContent='';
@@ -75,6 +76,7 @@ async function showDetails(id,box){
   say('Check the account name in your bank app matches, then send the agreed amount and tap I have paid.');
  }catch(e){say(er(e),1)}
 }
+function pconfirm(q){return new Promise(function(res){var o=document.createElement('div');o.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';var b=document.createElement('div');b.style.cssText='background:#1c2a18;color:#fff;border-radius:14px;padding:18px;max-width:420px;width:100%;font-size:15px;line-height:1.4';var t=document.createElement('div');t.style.cssText='margin-bottom:14px;white-space:pre-wrap';t.textContent=q;var r=document.createElement('div');r.style.cssText='display:flex;gap:10px';function mb(l,bg,fg,v){var x=document.createElement('button');x.textContent=l;x.style.cssText='flex:1;padding:12px;border:0;border-radius:10px;font-weight:600;background:'+bg+';color:'+fg;x.onclick=function(){o.remove();res(v)};return x}r.appendChild(mb('Cancel','#333','#fff',false));r.appendChild(mb('Continue','#d8f24a','#10150f',true));b.appendChild(t);b.appendChild(r);o.appendChild(b);document.body.appendChild(o)})}
 function renderOffer(i,f,me,has,vOk){
  var st=num(f.status),d=mk('div',null,'border-top:1px solid #2a3626;padding:10px 0');
  var t={};try{t=JSON.parse(f.terms)}catch(e){t={m:f.terms}}
@@ -84,7 +86,14 @@ function renderOffer(i,f,me,has,vOk){
  d.appendChild(mk('div','#'+i+' · '+amt+' EFIK · '+ST[st]));
  if(pt)d.appendChild(mk('div',pt));
  d.appendChild(mk('div','Seller '+sh(f.seller)+(pay?' · Pays to: '+pay:''),'color:#93a08a;word-break:break-all'));
- var c=mk('div',null,'color:#ffb86b;font-size:14px');
+ var iS0=f.seller.toLowerCase()===me,iB0=f.buyer.toLowerCase()===me,stx='';
+if(st===1)stx=iS0?'Waiting for a buyer. Chat opens when someone takes your offer.':'Open for sale. Tap Buy EFIK to start.';
+else if(st===2)stx=iB0?'Step 2 of 4: pay the seller bank account, then tap I have paid.':(iS0?'A buyer took your offer. Waiting for their payment.':'');
+else if(st===3)stx=iS0?'Step 3 of 4: buyer says paid. Check your bank, then tap Release EFIK.':(iB0?'Step 3 of 4: waiting for the seller to confirm and release.':'');
+else if(st===4)stx='Dispute open. The arbiter decides. Use Chat and add proof.';
+else if(st===5)stx='Done. The EFIK was released to the buyer.';
+if(stx)d.appendChild(mk('div',stx,'color:#d8f24a;font-size:14px;margin-top:4px'));
+var c=mk('div',null,'color:#ffb86b;font-size:14px');
  if(st===2)c.appendChild(cd('Time to pay',num(f.deadline)));
  else if(st===3)c.appendChild(cd('Dispute opens in',num(f.paidAt)+3600));
  else if(st===4)c.appendChild(cd('Auto-split after 30 days in',num(f.disputedAt)+2592000));
@@ -92,14 +101,14 @@ function renderOffer(i,f,me,has,vOk){
  var isS=f.seller.toLowerCase()===me,isB=f.buyer.toLowerCase()===me,now=Math.floor(Date.now()/1000);
  var r=mk('div',null,'display:flex;gap:8px;flex-wrap:wrap;margin-top:8px'),box=mk('div',null,'margin-top:8px');
  function btn(x,fn){var b=mk('button',x);b.onclick=fn;r.appendChild(b)}
- function call(m,q){return function(){if(q&&!confirm(q))return;act(function(){return ct()[m](i)})}}
+ function call(m,q){return function(){var go=function(){act(function(){return ct()[m](i)})};if(!q){go();return}pconfirm(q).then(function(ok){if(ok)go()})}}
  var relQ='Release only after the money is already in YOUR bank account. This cannot be undone. Continue?';
  if(st===1){
   if(isS){btn('Cancel offer',call('cancelOffer'));
    if(has.indexOf(i)<0&&localStorage.getItem('p2pd'+i))btn('Save payment details',async function(){try{say('Saving…');await upload(i,localStorage.getItem('p2pd'+i));say('Saved.');load()}catch(e){say(er(e),1)}})}
   else if(!vOk)d.appendChild(mk('div','Payment server not reachable. Try again soon.','color:#ff8a7a;font-size:14px'));
   else if(has.indexOf(i)<0)d.appendChild(mk('div','The seller has not saved payment details yet.','color:#ffb86b;font-size:14px'));
-  else btn('Take offer',call('take','You must send '+(t.p?t.c+' '+(t.p*amt).toFixed(t.p*amt<1?4:2):'the agreed amount')+' to the seller bank account within the time limit, then tap I have paid. Continue?'));
+  else btn('Buy EFIK',call('take','You must send '+(t.p?t.c+' '+(t.p*amt).toFixed(t.p*amt<1?4:2):'the agreed amount')+' to the seller bank account within the time limit, then tap I have paid. Continue?'));
  }
  if(st===2){if(isB){btn('Show payment details',function(){showDetails(i,box)});btn('I have paid',call('markPaid'))}
   if(isS){btn('Release EFIK',call('release',relQ));if(now>num(f.deadline))btn('Reopen',call('reclaim'))}}
@@ -137,8 +146,8 @@ async function load(){
   if(!nm)list.appendChild(mk('div','You have no trades yet.','color:#93a08a;font-size:14px'));
   list.appendChild(mine);
   list.appendChild(mk('h4','Open offers',null));
-  if(!no)list.appendChild(mk('div','No open offers right now.','color:#93a08a;font-size:14px'));
-  list.appendChild(open);
+  if(!no)list.appendChild(mk('div','No EFIK for sale right now. Check back soon, or post your own in Sell.','color:#93a08a;font-size:14px'));
+  list.appendChild(open);var tb=document.getElementById('p2tb');if(tb)tb.textContent=no?'Buy ('+no+')':'Buy';
   tick();
  }catch(e){list.textContent='Could not load offers: '+er(e)}
 }
@@ -146,7 +155,7 @@ function opts(a){return a.map(function(x){return '<option>'+x+'</option>'}).join
 function build(){
  o=document.createElement('div');o.id='efikp2p';
  o.style.cssText='display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#10150f;color:#eef2e6;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 40px;font:16px/1.45 system-ui,sans-serif';
- o.innerHTML='<style>#efikp2p input,#efikp2p select{width:100%;box-sizing:border-box;background:#10150f;color:#eef2e6;border:1px solid #2a3626;border-radius:8px;padding:10px;font-size:16px;margin:4px 0 8px}#efikp2p button{background:#d8f24a;color:#10150f;border:0;border-radius:8px;padding:10px 14px;font-weight:600;font-size:15px}</style><div style="max-width:560px;margin:auto"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">P2P market</h2><button id="p2x">Close</button></div><div id="p2h" style="color:#93a08a;margin:8px 0"></div><button id="p2al" style="margin-bottom:8px">Turn on phone alerts</button><div style="color:#93a08a;font-size:14px">The seller locks EFIK in escrow. The buyer pays the seller bank account directly, then taps I have paid. The seller releases the EFIK only after the money arrives. Disputes go to the arbiter.</div><h3>Sell EFIK</h3><input id="p2m" placeholder="EFIK to sell" inputmode="decimal"><div style="display:flex;gap:8px"><input id="p2u" placeholder="Price per EFIK" inputmode="decimal"><select id="p2c" style="width:40%">'+opts(CUR)+'</select></div><select id="p2b"><option value="">Choose your bank</option><optgroup label="Banks">'+opts(BANKS)+'</optgroup><optgroup label="Mobile money and fintech">'+opts(FIN)+'</optgroup><option value="Other">Other bank</option></select><input id="p2o" placeholder="Bank name" style="display:none" maxlength="40"><input id="p2n" placeholder="Account name" maxlength="60"><input id="p2a" placeholder="Account number (10 digits)" inputmode="numeric" maxlength="10"><div id="p2v" style="font-size:14px;min-height:20px;margin-bottom:8px"></div><input id="p2w" placeholder="Minutes the buyer has to pay (15 to 1440)" inputmode="numeric" value="30"><div style="color:#ffb86b;font-size:13px;margin-bottom:8px">Your bank details are stored encrypted on the EfikChain server. Only the buyer of your offer can read them, and only after taking it.</div><button id="p2s">Lock EFIK and post offer</button><div id="p2g" style="min-height:20px;margin-top:8px;font-size:14px;word-break:break-all"></div><h3>Offers</h3><div id="p2l"></div></div>';
+ o.innerHTML='<style>#efikp2p input,#efikp2p select{width:100%;box-sizing:border-box;background:#10150f;color:#eef2e6;border:1px solid #2a3626;border-radius:8px;padding:10px;font-size:16px;margin:4px 0 8px}#efikp2p button{background:#d8f24a;color:#10150f;border:0;border-radius:8px;padding:10px 14px;font-weight:600;font-size:15px}</style><div style="max-width:560px;margin:auto"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">P2P market</h2><button id="p2x">Close</button></div><div id="p2h" style="color:#93a08a;margin:8px 0"></div><button id="p2al" style="margin-bottom:8px">Turn on phone alerts</button><div style="color:#93a08a;font-size:14px">The seller locks EFIK in escrow. The buyer pays the seller bank account directly, then taps I have paid. The seller releases the EFIK only after the money arrives. Disputes go to the arbiter.</div><div style="display:flex;gap:8px;margin:12px 0"><button id="p2tb">Buy</button><button id="p2ts">Sell</button></div><div id="p2sell" style="display:none"><h3>Sell EFIK</h3><input id="p2m" placeholder="EFIK to sell" inputmode="decimal"><div style="display:flex;gap:8px"><input id="p2u" placeholder="Price per EFIK" inputmode="decimal"><select id="p2c" style="width:40%">'+opts(CUR)+'</select></div><select id="p2b"><option value="">Choose your bank</option><optgroup label="Banks">'+opts(BANKS)+'</optgroup><optgroup label="Mobile money and fintech">'+opts(FIN)+'</optgroup><option value="Other">Other bank</option></select><input id="p2o" placeholder="Bank name" style="display:none" maxlength="40"><input id="p2n" placeholder="Account name" maxlength="60"><input id="p2a" placeholder="Account number (10 digits)" inputmode="numeric" maxlength="10"><div id="p2v" style="font-size:14px;min-height:20px;margin-bottom:8px"></div><input id="p2w" placeholder="Minutes the buyer has to pay (15 to 1440)" inputmode="numeric" value="30"><div style="color:#ffb86b;font-size:13px;margin-bottom:8px">Your bank details are stored encrypted on the EfikChain server. Only the buyer of your offer can read them, and only after taking it.</div><button id="p2s">Lock EFIK and post offer</button><div id="p2g" style="min-height:20px;margin-top:8px;font-size:14px;word-break:break-all"></div></div><div id="p2buy"><h3>Offers</h3><div id="p2l"></div></div></div>';
  document.body.appendChild(o);
  msg=o.querySelector('#p2g');list=o.querySelector('#p2l');hd=o.querySelector('#p2h');o.querySelector('#p2al').onclick=function(){if(window.Notification)Notification.requestPermission().then(function(p){say(p==='granted'?'Alerts are on.':'Alerts are blocked in your browser settings.',p!=='granted')});else say('This browser does not support phone alerts.',1)};
  var bk=o.querySelector('#p2b'),ot=o.querySelector('#p2o'),ai=o.querySelector('#p2a'),vv=o.querySelector('#p2v');
@@ -178,13 +187,13 @@ function build(){
  setInterval(tick,1000);
 }
 async function chatList(id){
- var ts=Math.floor(Date.now()/1000),sig=await W0().signMessage('EfikP2P chatread:'+id+':'+ts);
+ var ts=Math.floor(Date.now()/1000),sig=await WS('EfikP2P chatread:'+id+':'+ts);
  var r=await fetch('/p2papi/chat/list?id='+id+'&ts='+ts+'&sig='+encodeURIComponent(sig),{cache:'no-store'}),j=await r.json();
  if(!j.messages)throw new Error('Chat is not available for this trade.');
  return j.messages;
 }
 async function chatSend(id,text){
- var ts=Math.floor(Date.now()/1000),sig=await W0().signMessage('EfikP2P chat:'+id+':'+ts+':'+kc(text));
+ var ts=Math.floor(Date.now()/1000),sig=await WS('EfikP2P chat:'+id+':'+ts+':'+kc(text));
  var r=await fetch('/p2papi/chat/send',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:id,ts:ts,text:text,sig:sig})});
  if(!r.ok)throw new Error('Message not sent. Chat is open only while the trade is active.');
 }
@@ -264,7 +273,7 @@ function shrink(file,cb){
  rd.onerror=function(){cb(null)};rd.readAsDataURL(file);
 }
 async function proofSend(id,img,note){
- var ts=Math.floor(Date.now()/1000),sig=await W0().signMessage('EfikP2P proof:'+id+':'+ts+':'+kc(img+'|'+note));
+ var ts=Math.floor(Date.now()/1000),sig=await WS('EfikP2P proof:'+id+':'+ts+':'+kc(img+'|'+note));
  var r=await fetch('/p2papi/proof/put',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:id,ts:ts,img:img,note:note,sig:sig})});
  if(!r.ok)throw new Error(r.status===413?'Photo too large.':'Proof not saved. Proofs can be added only while the trade is active.');
 }
@@ -289,7 +298,7 @@ function proofAdd(id,box){
 async function proofView(id,box){
  if(box.firstChild){box.textContent='';return}
  try{
-  var ts=Math.floor(Date.now()/1000),sig=await W0().signMessage('EfikP2P proofread:'+id+':'+ts);
+  var ts=Math.floor(Date.now()/1000),sig=await WS('EfikP2P proofread:'+id+':'+ts);
   var r=await fetch('/p2papi/proof/list?id='+id+'&ts='+ts+'&sig='+encodeURIComponent(sig),{cache:'no-store'}),j=await r.json();
   if(!j.proofs)throw new Error('Proofs are not available to you on this trade.');
   if(!j.proofs.length){box.appendChild(mk('div','No proof uploaded yet.','color:#93a08a'));return}
@@ -305,4 +314,22 @@ async function proofView(id,box){
 var dp=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js',{scope:'/wallet/'}).catch(function(){});
 window.EfikP2P={open:function(){if(!o)build();o.style.display='block';load()},openMode:function(){window.EfikP2P.open()}};
+})();
+
+window.p2tab=function(b){document.getElementById('p2buy').style.display=b?'':'none';document.getElementById('p2sell').style.display=b?'none':''};
+
+(function(){
+function tab(b){
+ var B=document.getElementById('p2buy'),S=document.getElementById('p2sell'),x=document.getElementById('p2tb'),y=document.getElementById('p2ts');
+ if(!B||!S)return;
+ B.style.display=b?'':'none';S.style.display=b?'none':'';
+ if(x)x.style.opacity=b?'1':'0.5';
+ if(y)y.style.opacity=b?'0.5':'1';
+}
+document.addEventListener('click',function(e){
+ var t=e.target&&e.target.id;
+ if(t==='p2tb')tab(1);
+ if(t==='p2ts')tab(0);
+});
+window.p2tab=tab;
 })();
